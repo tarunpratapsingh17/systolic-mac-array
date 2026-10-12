@@ -1,0 +1,9 @@
+sim_build/
+results.xml
+*.vcd
+*.fst
+__pycache__/
+.pytest_cache/
+.DS_Store
+Thumbs.db
+.vscode/

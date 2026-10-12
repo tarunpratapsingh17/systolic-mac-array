@@ -1,0 +1,34 @@
+name: simulation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog and Verilator
+        run: sudo apt-get update && sudo apt-get install -y iverilog verilator
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install cocotb, pyuvm, pytest
+        run: pip install -r requirements.txt
+
+      - name: Lint (Verilator -Wall)
+        run: |
+          for n in 2 4; do
+            verilator --lint-only -Wall rtl/*.v --top-module systolic_top -GN=$n
+          done
+          verilator --lint-only -Wall rtl/mac_pe.v rtl/systolic_array.v --top-module systolic_array -GN=8
+
+      - name: cocotb + pyuvm tests (all configurations)
+        run: pytest -v tests/test_runner.py
+
+      - name: Fault injection (every planted bug must be caught)
+        run: python3 scripts/fault_injection.py
